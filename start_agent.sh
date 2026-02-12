@@ -25,6 +25,11 @@ if [ -d "venv" ]; then
         exit 1
     fi
     echo "虚拟环境已激活。"
+    echo "安装/更新依赖包..."
+    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+    if [ $? -ne 0 ]; then
+        echo "警告: 依赖安装失败，但继续运行..."
+    fi
 else
     echo "创建新的虚拟环境..."
     python3 -m venv venv

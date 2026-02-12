@@ -23,6 +23,11 @@ if exist venv (
         exit /b 1
     )
     echo 虚拟环境已激活。
+    echo 安装/更新依赖包...
+    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+    if errorlevel 1 (
+        echo 警告: 依赖安装失败，但继续运行...
+    )
 ) else (
     echo 创建新的虚拟环境...
     python -m venv venv
