@@ -6,6 +6,7 @@ A股金融分析智能体 - 主入口点
 
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from agent.analyst import AnalystAgent
@@ -119,19 +120,28 @@ def main():
         markdown_report = analyst.analyze_stock(symbol)
         
         print("-" * 60)
-        print("分析完成！正在生成PDF报告...")
+        print("分析完成！正在生成报告...")
         
-        # 生成PDF报告
+        # 生成报告（PDF或HTML）
         try:
             pdf_path = generate_pdf_report(markdown_report, symbol)
-            print(f"PDF报告已保存到: {pdf_path}")
-            print(f"文件大小: {os.path.getsize(pdf_path) / 1024:.1f} KB")
+            # 检查文件类型
+            if pdf_path.endswith('.pdf'):
+                print(f"✓ PDF报告已生成: {pdf_path}")
+                print(f"  文件大小: {os.path.getsize(pdf_path) / 1024:.1f} KB")
+            elif pdf_path.endswith('.html'):
+                print(f"✓ HTML报告已生成: {pdf_path}")
+                print(f"  注：由于PDF引擎不可用，已生成HTML格式报告")
+                print(f"  您可以打开此HTML文件，按Ctrl+P选择'保存为PDF'")
+            else:
+                print(f"报告已保存: {pdf_path}")
         except Exception as e:
-            print(f"生成PDF报告时出错: {e}")
+            print(f"生成报告时出错: {e}")
             print("正在保存Markdown版本...")
             
             # 保存Markdown版本作为备选
-            md_path = f"reports/Report_{symbol}_{Path(pdf_path).stem.split('_')[-1]}.md"
+            timestamp = datetime.now().strftime("%Y%m%d")
+            md_path = f"reports/Report_{symbol}_{timestamp}.md"
             os.makedirs("reports", exist_ok=True)
             with open(md_path, 'w', encoding='utf-8') as f:
                 f.write(markdown_report)

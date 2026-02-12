@@ -2,19 +2,76 @@ import markdown2
 import os
 from datetime import datetime
 import sys
+import tempfile
 
-# 尝试导入weasyprint，如果失败则创建替代方案
+# ================== PDF 引擎检测 ==================
+# 按优先级尝试不同的PDF生成引擎
+PDF_ENGINES = []
+
+# 1. 尝试 WeasyPrint
 WEASYPRINT_AVAILABLE = False
+WEASYPRINT_ERROR = None
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
-    print("WeasyPrint 可用，将生成PDF报告", file=sys.stderr)
+    PDF_ENGINES.append('weasyprint')
+    print("✓ WeasyPrint 可用", file=sys.stderr)
 except ImportError as e:
-    # WeasyPrint可能由于缺少依赖而无法导入
-    print(f"注意: WeasyPrint导入失败 ({e})，将使用HTML替代方案", file=sys.stderr)
+    WEASYPRINT_ERROR = f"导入失败: {e}"
 except Exception as e:
-    # 其他错误，如缺少DLL
-    print(f"注意: WeasyPrint初始化失败 ({e})，将使用HTML替代方案", file=sys.stderr)
+    WEASYPRINT_ERROR = f"初始化失败: {e}"
+
+# 2. 尝试 pdfkit (需要 wkhtmltopdf)
+PDFKIT_AVAILABLE = False
+PDFKIT_ERROR = None
+try:
+    import pdfkit
+    # 检查 wkhtmltopdf 是否在 PATH 中
+    import subprocess
+    try:
+        # 尝试查找 wkhtmltopdf
+        result = subprocess.run(['wkhtmltopdf', '--version'], 
+                              capture_output=True, text=True, shell=True)
+        if result.returncode == 0:
+            PDFKIT_AVAILABLE = True
+            PDF_ENGINES.append('pdfkit')
+            print("✓ pdfkit + wkhtmltopdf 可用", file=sys.stderr)
+        else:
+            PDFKIT_ERROR = "wkhtmltopdf 未安装或不在 PATH 中"
+    except (FileNotFoundError, subprocess.SubprocessError):
+        PDFKIT_ERROR = "wkhtmltopdf 未安装"
+except ImportError as e:
+    PDFKIT_ERROR = f"pdfkit 库未安装: {e}"
+except Exception as e:
+    PDFKIT_ERROR = f"pdfkit 初始化失败: {e}"
+
+# 3. 尝试 xhtml2pdf
+XHTML2PDF_AVAILABLE = False
+XHTML2PDF_ERROR = None
+try:
+    from xhtml2pdf import pisa
+    XHTML2PDF_AVAILABLE = True
+    PDF_ENGINES.append('xhtml2pdf')
+    print("✓ xhtml2pdf 可用", file=sys.stderr)
+except ImportError as e:
+    XHTML2PDF_ERROR = f"导入失败: {e}"
+except Exception as e:
+    XHTML2PDF_ERROR = f"初始化失败: {e}"
+
+# 4. 尝试 fpdf2 (简单PDF生成)
+FPDF2_AVAILABLE = False
+FPDF2_ERROR = None
+try:
+    from fpdf import FPDF
+    FPDF2_AVAILABLE = True
+    PDF_ENGINES.append('fpdf2')
+    print("✓ fpdf2 可用", file=sys.stderr)
+except ImportError as e:
+    FPDF2_ERROR = f"导入失败: {e}"
+except Exception as e:
+    FPDF2_ERROR = f"初始化失败: {e}"
+
+print(f"可用 PDF 引擎: {PDF_ENGINES if PDF_ENGINES else '无'}", file=sys.stderr)
 
 def generate_pdf_report(markdown_content: str, symbol: str, output_dir: str = "reports") -> str:
     """
@@ -237,24 +294,177 @@ def generate_pdf_report(markdown_content: str, symbol: str, output_dir: str = "r
     </html>
     """
     
-    # 尝试使用weasyprint生成PDF，如果可用且正常工作
-    if WEASYPRINT_AVAILABLE:
-        try:
-            filename = f"Report_{symbol}_{timestamp}.pdf"
-            output_path = os.path.join(output_dir, filename)
-            HTML(string=full_html).write_pdf(output_path)
-            print(f"PDF报告已生成: {output_path}")
-            return output_path
-        except Exception as e:
-            print(f"警告: WeasyPrint PDF生成失败 ({e})，将保存为HTML文件", file=sys.stderr)
-            # 继续执行HTML保存
+    # 尝试使用可用的PDF引擎生成PDF
+    pdf_generated = False
+    pdf_path = None
     
-    # 保存为HTML文件（替代方案）
-    filename = f"Report_{symbol}_{timestamp}.html"
+    # 按优先级尝试各个引擎
+    for engine in PDF_ENGINES:
+        try:
+            if engine == 'weasyprint' and WEASYPRINT_AVAILABLE:
+                pdf_path = _generate_with_weasyprint(full_html, symbol, timestamp, output_dir)
+                if pdf_path:
+                    pdf_generated = True
+                    print(f"✓ 使用 WeasyPrint 生成PDF: {pdf_path}")
+                    break
+                    
+            elif engine == 'pdfkit' and PDFKIT_AVAILABLE:
+                pdf_path = _generate_with_pdfkit(full_html, symbol, timestamp, output_dir)
+                if pdf_path:
+                    pdf_generated = True
+                    print(f"✓ 使用 pdfkit 生成PDF: {pdf_path}")
+                    break
+                    
+            elif engine == 'xhtml2pdf' and XHTML2PDF_AVAILABLE:
+                pdf_path = _generate_with_xhtml2pdf(full_html, symbol, timestamp, output_dir)
+                if pdf_path:
+                    pdf_generated = True
+                    print(f"✓ 使用 xhtml2pdf 生成PDF: {pdf_path}")
+                    break
+                    
+            elif engine == 'fpdf2' and FPDF2_AVAILABLE:
+                pdf_path = _generate_with_fpdf2(markdown_content, symbol, timestamp, output_dir)
+                if pdf_path:
+                    pdf_generated = True
+                    print(f"✓ 使用 fpdf2 生成PDF: {pdf_path}")
+                    break
+                    
+        except Exception as e:
+            print(f"⚠ {engine} 引擎失败: {e}", file=sys.stderr)
+            continue
+    
+    # 如果PDF生成成功，返回PDF路径
+    if pdf_generated and pdf_path:
+        # 同时保存HTML和Markdown版本作为备份
+        _save_html_and_markdown(full_html, markdown_content, symbol, timestamp, output_dir)
+        return pdf_path
+    
+    # PDF生成失败，保存为HTML文件（替代方案）
+    return _save_as_html_fallback(full_html, markdown_content, symbol, timestamp, output_dir)
+
+# ================== PDF 引擎实现函数 ==================
+
+def _generate_with_weasyprint(html_content: str, symbol: str, timestamp: str, output_dir: str) -> str:
+    """使用 WeasyPrint 生成 PDF"""
+    from weasyprint import HTML
+    filename = f"Report_{symbol}_{timestamp}.pdf"
+    output_path = os.path.join(output_dir, filename)
+    HTML(string=html_content).write_pdf(output_path)
+    return output_path
+
+def _generate_with_pdfkit(html_content: str, symbol: str, timestamp: str, output_dir: str) -> str:
+    """使用 pdfkit (wkhtmltopdf) 生成 PDF"""
+    import pdfkit
+    filename = f"Report_{symbol}_{timestamp}.pdf"
     output_path = os.path.join(output_dir, filename)
     
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(full_html)
+    # 配置选项
+    options = {
+        'page-size': 'A4',
+        'margin-top': '1.5cm',
+        'margin-right': '1.5cm',
+        'margin-bottom': '1.5cm',
+        'margin-left': '1.5cm',
+        'encoding': "UTF-8",
+        'no-outline': None,
+        'enable-local-file-access': None,
+    }
+    
+    # 临时保存HTML文件，因为pdfkit需要文件路径
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+        temp_html_path = f.name
+        f.write(html_content)
+    
+    try:
+        pdfkit.from_file(temp_html_path, output_path, options=options)
+    finally:
+        # 清理临时文件
+        try:
+            os.unlink(temp_html_path)
+        except:
+            pass
+    
+    return output_path
+
+def _generate_with_xhtml2pdf(html_content: str, symbol: str, timestamp: str, output_dir: str) -> str:
+    """使用 xhtml2pdf 生成 PDF"""
+    from xhtml2pdf import pisa
+    filename = f"Report_{symbol}_{timestamp}.pdf"
+    output_path = os.path.join(output_dir, filename)
+    
+    with open(output_path, 'wb') as f:
+        pisa_status = pisa.CreatePDF(html_content, dest=f, encoding='UTF-8')
+    
+    if pisa_status.err:
+        raise Exception(f"xhtml2pdf 生成失败: {pisa_status.err}")
+    
+    return output_path
+
+def _generate_with_fpdf2(markdown_content: str, symbol: str, timestamp: str, output_dir: str) -> str:
+    """使用 fpdf2 生成简单的 PDF (不支持复杂HTML，使用纯文本)"""
+    from fpdf import FPDF
+    
+    filename = f"Report_{symbol}_{timestamp}.pdf"
+    output_path = os.path.join(output_dir, filename)
+    
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.add_font('SimHei', '', 'simhei.ttf', uni=True)  # 尝试添加中文字体
+    pdf.set_font('Arial', '', 12)
+    
+    # 添加标题
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(0, 10, f'A股分析报告 - {symbol}', 0, 1, 'C')
+    pdf.ln(10)
+    
+    # 添加生成时间
+    pdf.set_font('Arial', '', 10)
+    from datetime import datetime
+    pdf.cell(0, 10, f'生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', 0, 1, 'C')
+    pdf.ln(10)
+    
+    # 添加内容（简化版，只添加文本）
+    pdf.set_font('Arial', '', 12)
+    
+    # 将markdown内容转换为纯文本（简单处理）
+    lines = markdown_content.split('\n')
+    for line in lines[:100]:  # 限制行数
+        if line.strip():
+            # 移除markdown标记
+            clean_line = line.replace('#', '').replace('*', '').replace('`', '')
+            if len(clean_line) > 80:
+                # 自动换行
+                pdf.multi_cell(0, 8, clean_line[:200])  # 限制长度
+            else:
+                pdf.cell(0, 8, clean_line[:200], 0, 1)
+    
+    pdf.output(output_path)
+    return output_path
+
+def _save_html_and_markdown(html_content: str, markdown_content: str, symbol: str, timestamp: str, output_dir: str):
+    """保存HTML和Markdown版本作为备份"""
+    # 保存HTML文件
+    html_filename = f"Report_{symbol}_{timestamp}.html"
+    html_output_path = os.path.join(output_dir, html_filename)
+    with open(html_output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    # 保存原始Markdown
+    md_filename = f"Report_{symbol}_{timestamp}.md"
+    md_output_path = os.path.join(output_dir, md_filename)
+    with open(md_output_path, 'w', encoding='utf-8') as f:
+        f.write(markdown_content)
+    
+    print(f"备份文件: {html_output_path}, {md_output_path}")
+
+def _save_as_html_fallback(html_content: str, markdown_content: str, symbol: str, timestamp: str, output_dir: str) -> str:
+    """PDF生成失败时，保存为HTML文件（最终备用方案）"""
+    # 保存HTML文件
+    html_filename = f"Report_{symbol}_{timestamp}.html"
+    html_output_path = os.path.join(output_dir, html_filename)
+    
+    with open(html_output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
     
     # 同时保存原始Markdown
     md_filename = f"Report_{symbol}_{timestamp}.md"
@@ -262,8 +472,8 @@ def generate_pdf_report(markdown_content: str, symbol: str, output_dir: str = "r
     with open(md_output_path, 'w', encoding='utf-8') as f:
         f.write(markdown_content)
     
-    print(f"注意: 由于PDF生成库问题，报告已保存为HTML格式: {output_path}")
-    print(f"      原始Markdown文件: {md_output_path}")
-    print(f"      您可以打开HTML文件，按Ctrl+P，选择'保存为PDF'来生成PDF版本。")
+    print(f"⚠ 所有PDF引擎均失败，已保存为HTML格式: {html_output_path}")
+    print(f"  原始Markdown文件: {md_output_path}")
+    print(f"  您可以打开HTML文件，按Ctrl+P，选择'保存为PDF'来生成PDF版本。")
     
-    return output_path
+    return html_output_path

@@ -1,10 +1,15 @@
 smolagents>=0.6.0
 akshare>=1.12.0
 markdown2>=2.4.0
-weasyprint>=60.0
 pyyaml>=6.0
 python-dotenv>=1.0.0
 pandas>=2.0.0
 requests>=2.31.0
 openai>=1.0.0
 yfinance>=0.2.38
+
+# PDF生成引擎（推荐至少安装一个）
+xhtml2pdf>=0.2.12    # 推荐：纯Python，无需外部依赖，安装即用
+# weasyprint>=60.0   # 高质量，但需要安装GTK3运行时
+# pdfkit>=1.0.0      # 中等质量，需要安装wkhtmltopdf
+# fpdf2>=2.7.8       # 简单PDF，纯Python

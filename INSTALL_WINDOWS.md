@@ -1,51 +1,51 @@
 # Windows 安装指南
 
-## 解决 WeasyPrint 依赖问题
+## PDF 生成支持
 
-在 Windows 上运行 A股金融分析智能体时，可能会遇到 WeasyPrint 依赖问题。这是因为 WeasyPrint 需要 GTK3 运行时库。
+A股金融分析智能体现在支持**多种PDF生成引擎**，无需手动安装GTK3运行时。系统会自动检测并选择可用的最佳方案：
 
-### 解决方案 1：安装 GTK3 运行时（推荐）
+### PDF 引擎优先级
 
-1. **下载并安装 GTK3 运行时**
-   - 访问 https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer
-   - 下载最新版本的 GTK3 运行时安装程序
-   - 运行安装程序，按照提示安装
+1. **WeasyPrint** (需要GTK3运行时) - 最高质量
+2. **pdfkit** (需要wkhtmltopdf) - 中等质量
+3. **xhtml2pdf** (纯Python) - 基本质量
+4. **fpdf2** (纯Python) - 简单文本PDF
+5. **HTML + 浏览器打印** (无需额外安装) - 最终备选方案
 
-2. **或者使用以下命令安装（如果已安装 Chocolatey）：**
-   ```cmd
-   choco install gtk3
-   ```
+### 推荐安装方案
 
-3. **或者手动安装：**
-   - 从 https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases 下载 `gtk3-runtime-*.exe`
-   - 运行安装程序
-   - 确保安装目录添加到系统 PATH 环境变量
-
-### 解决方案 2：使用 HTML 替代方案（无需额外安装）
-
-程序已经内置了优雅降级功能。如果 WeasyPrint 无法工作，程序会自动生成 HTML 格式的报告，您可以：
-
-1. 打开生成的 `.html` 文件
-2. 按 `Ctrl + P` 打开打印对话框
-3. 选择 "Microsoft Print to PDF" 或 "另存为 PDF"
-4. 点击打印/保存生成 PDF 文件
-
-### 解决方案 3：安装 WeasyPrint 的 Windows 版本
-
+#### ✅ 方案A：安装xhtml2pdf (推荐，最简单)
 ```cmd
-# 激活虚拟环境后运行
-pip install weasyprint
-# WeasyPrint 会自动尝试安装必要的依赖
+# 纯Python实现，无需外部依赖，安装即用
+pip install xhtml2pdf
 ```
+**优点**: 安装简单，无需配置，跨平台兼容性好  
+**质量**: 良好，支持中文和CSS样式
 
-如果遇到错误，尝试：
-
+#### 方案B：安装WeasyPrint + GTK3 (最佳质量)
 ```cmd
-# 先安装必要的依赖
-pip install cairocffi
-pip install cffi
+# 1. 安装GTK3运行时 (从 https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer 下载)
+# 2. 然后安装WeasyPrint
 pip install weasyprint
 ```
+**优点**: PDF质量最高，CSS支持最好  
+**缺点**: 需要安装GTK3运行时，配置较复杂
+
+#### 方案C：安装pdfkit + wkhtmltopdf (中等质量)
+```cmd
+# 1. 下载wkhtmltopdf并添加到PATH (https://wkhtmltopdf.org/downloads.html)
+# 2. 安装pdfkit
+pip install pdfkit
+```
+**优点**: 无需GTK3，PDF质量较好  
+**缺点**: 需要安装wkhtmltopdf并配置PATH
+
+#### 方案D：不安装任何PDF库 (使用浏览器打印)
+- 无需安装任何额外库
+- 程序会自动生成HTML文件
+- 打开HTML文件，按Ctrl+P选择"保存为PDF"
+
+> **注意**: 程序会自动检测可用引擎并选择最佳方案。推荐安装 **xhtml2pdf**，它安装最简单且功能完善。
 
 ## 完整的安装步骤
 

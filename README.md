@@ -16,6 +16,7 @@
 - **数据源冗余**: Akshare主数据源 + 雅虎财经备用数据源
 - **智能重试机制**: 网络异常时自动重试，提高数据获取成功率
 - **行业均值比较**: 基于akshare接口的行业估值和成长性对比分析
+- **PDF多引擎支持**: 支持xhtml2pdf(推荐，纯Python)、WeasyPrint(高质量)、pdfkit、fpdf2等多种引擎，自动选择最优方案
 
 ### 新增高级功能
 
@@ -23,7 +24,8 @@
 2. **重试机制**: 雅虎财经接口支持最多5次重试，智能处理网络异常和数据缺失
 3. **经营范围数据整合**: 当akshare接口缺失经营范围时，自动从雅虎财经接口获取`longBusinessSummary`
 4. **行业均值分析**: 使用akshare的行业比较接口获取行业平均估值和成长性指标
-5. **配置分离**: 所有配置分离到YAML文件，支持动态调整：
+5. **PDF多引擎支持**: 支持WeasyPrint、pdfkit、xhtml2pdf、fpdf2多种PDF生成引擎，自动选择可用方案，无需手动安装GTK3运行时
+6. **配置分离**: 所有配置分离到YAML文件，支持动态调整：
    - 模型API配置（OpenRouter/其他提供商）
    - 雅虎财经代理设置
    - 重试参数配置
@@ -143,11 +145,13 @@ project_root/
 
 ### 4. PDF生成器 (utils/pdf_generator.py)
 
-生成包含中文支持的PDF报告：
-- 使用markdown2转换Markdown为HTML
-- 使用weasyprint生成PDF
-- 包含中文字体配置（Microsoft YaHei）
-- 备用生成器支持HTML格式输出
+智能PDF报告生成系统，支持多引擎自动选择：
+- **智能引擎检测**: 自动检测xhtml2pdf(推荐)、WeasyPrint、pdfkit、fpdf2等PDF生成库
+- **优先级选择**: 按引擎质量和可用性自动选择最优方案，无需用户干预
+- **推荐方案**: 默认使用xhtml2pdf（纯Python，无需外部依赖，安装即用）
+- **优雅降级**: 所有引擎均不可用时自动生成HTML报告，支持浏览器打印为PDF
+- **中文支持**: 包含中文字体配置（Microsoft YaHei），确保中文显示正常
+- **备份文件**: 同时生成HTML和Markdown格式备份，确保数据不丢失
 
 ## 配置说明
 
