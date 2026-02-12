@@ -1,0 +1,24 @@
+version: "1.0"
+
+model:
+  provider: "openrouter"
+  base_url: "https://openrouter.ai/api/v1"
+  model_name: "deepseek/deepseek-chat"
+  api_key_env: "OPENROUTER_API_KEY"
+  parameters:
+    max_tokens: 4000
+    temperature: 0.1
+    top_p: 0.9
+
+yfinance:
+  proxy:
+    enabled: false
+    http_proxy: "http://127.0.0.1:10808"
+    https_proxy: "http://127.0.0.1:10808"
+  retry:
+    max_retries: 5
+    retry_delay: 1.0
+
+akshare:
+  timeout: 30
+  retry_count: 3
