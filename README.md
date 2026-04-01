@@ -1,53 +1,62 @@
-# A股金融分析智能体 (A-Share Financial Analyst Agent)
+# A 股金融分析智能体 (A-Share Financial Analyst Agent)
 
 ## 项目概述
 
-这是一个本地化的A股金融分析智能体，专为Windows平台设计。通过一个简单的批处理文件，用户可以自动设置Python虚拟环境、通过Akshare获取股票数据、使用LLM（OpenRouter）进行分析，并生成专业的PDF报告。系统集成了完整的配置管理系统，支持雅虎财经接口数据提取和行业比较分析。
+这是一个本地化的 A 股金融分析智能体，专为 Windows 平台设计。通过一个简单的批处理文件，用户可以自动设置 Python 虚拟环境、通过 Akshare 获取股票数据、使用 LLM（OpenRouter）进行分析，并生成专业的 PDF 报告。系统集成了完整的配置管理系统，支持雅虎财经接口数据提取和行业比较分析。
 
 ## 功能特点
 
 - **一站式解决方案**: 只需运行一个批处理文件即可完成所有设置
-- **自动环境管理**: 自动创建和管理Python虚拟环境
-- **数据获取**: 通过Akshare获取实时股票数据、财务指标和价格历史
-- **AI分析**: 使用OpenRouter API进行智能金融分析
-- **PDF报告生成**: 自动生成包含中文支持的PDF报告
-- **用户友好**: 交互式CLI界面，引导用户完成分析过程
-- **配置管理系统**: 完整的YAML配置，支持模型设定、代理设置、重试机制
-- **数据源冗余**: Akshare主数据源 + 雅虎财经备用数据源
+- **自动环境管理**: 自动创建和管理 Python 虚拟环境
+- **数据获取**: 通过 Akshare 获取实时股票数据、财务指标和价格历史
+- **AI 分析**: 使用 OpenRouter API 进行智能金融分析
+- **PDF 报告生成**: 自动生成包含中文支持的 PDF 报告
+- **用户友好**: 交互式 CLI 界面，引导用户完成分析过程
+- **配置管理系统**: 完整的 YAML 配置，支持模型设定、代理设置、重试机制
+- **数据源冗余**: Akshare 主数据源 + 雅虎财经备用数据源
 - **智能重试机制**: 网络异常时自动重试，提高数据获取成功率
-- **行业均值比较**: 基于akshare接口的行业估值和成长性对比分析
-- **PDF多引擎支持**: 支持xhtml2pdf(推荐，纯Python)、WeasyPrint(高质量)、pdfkit、fpdf2等多种引擎，自动选择最优方案
+- **行业均值比较**: 基于 akshare 接口的行业估值和成长性对比分析
+- **PDF 多引擎支持**: 支持 reportlab(推荐)、xhtml2pdf、WeasyPrint(高质量)、pdfkit、fpdf2 等多种引擎，自动选择最优方案
+- **中文完美支持**: 自动注册 7 种中文字体，支持中文自动换行，彻底解决乱码和显示问题
+- **智能翻译**: AI 自动将英文数据（如经营范围）翻译为中文，报告全中文化
 
 ### 新增高级功能
 
-1. **上市日期提取**: 从雅虎财经接口提取`firstTradeDateMilliseconds`并转换为datetime对象
-2. **重试机制**: 雅虎财经接口支持最多5次重试，智能处理网络异常和数据缺失
-3. **经营范围数据整合**: 当akshare接口缺失经营范围时，自动从雅虎财经接口获取`longBusinessSummary`
-4. **行业均值分析**: 使用akshare的行业比较接口获取行业平均估值和成长性指标
-5. **PDF多引擎支持**: 支持WeasyPrint、pdfkit、xhtml2pdf、fpdf2多种PDF生成引擎，自动选择可用方案，无需手动安装GTK3运行时
-6. **配置分离**: 所有配置分离到YAML文件，支持动态调整：
-   - 模型API配置（OpenRouter/其他提供商）
+1. **上市日期提取**: 从雅虎财经接口提取 `firstTradeDateMilliseconds` 并转换为 datetime 对象
+2. **重试机制**: 雅虎财经接口支持最多 5 次重试，智能处理网络异常和数据缺失
+3. **经营范围数据整合**: 当 akshare 接口缺失经营范围时，自动从雅虎财经接口获取 `longBusinessSummary`
+4. **行业均值分析**: 使用 akshare 的行业比较接口获取行业平均估值和成长性指标
+5. **PDF 多引擎支持**: 支持 reportlab、xhtml2pdf、WeasyPrint、pdfkit、fpdf2 多种 PDF 生成引擎，自动选择可用方案
+6. **配置分离**: 所有配置分离到 YAML 文件，支持动态调整：
+   - 模型 API 配置（OpenRouter/其他提供商）
    - 雅虎财经代理设置
    - 重试参数配置
    - 超时设置
 
+### 2026 年 4 月最新修复
+
+7. **PDF 中文换行优化**: 使用 reportlab 引擎，通过 `wordWrap='CJK'` 确保中文长文本自动换行
+8. **中文字体增强**: 注册 7 种中文字体（SimHei/SimSun/SimFang/SimKai/SimYou/MicrosoftYaHei），优先使用 .ttf 格式
+9. **AI 翻译强化**: 优化提示词，明确要求 AI 将经营范围等英文内容翻译为中文
+10. **输出格式优化**: 指导 AI 输出 Markdown 格式报告，避免代码解析错误
+
 ## 系统要求
 
 - Windows 10/11
-- Python 3.10+ (已安装并添加到PATH)
-- 网络连接（用于获取股票数据和API调用）
+- Python 3.10+ (已安装并添加到 PATH)
+- 网络连接（用于获取股票数据和 API 调用）
 
 ## 快速开始
 
-### 1. 获取OpenRouter API密钥
+### 1. 获取 OpenRouter API 密钥
 
-1. 访问 [OpenRouter网站](https://openrouter.ai/)
-2. 注册账号并获取API密钥
+1. 访问 [OpenRouter 网站](https://openrouter.ai/)
+2. 注册账号并获取 API 密钥
 3. 免费额度足够进行测试
 
-### 2. 设置API密钥
+### 2. 设置 API 密钥
 
-编辑 `config/.env` 文件，将 `your_key_here` 替换为你的OpenRouter API密钥：
+编辑 `config/.env` 文件，将 `your_key_here` 替换为你的 OpenRouter API 密钥：
 
 ```
 OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx
@@ -62,17 +71,17 @@ OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 首次运行时会：
-1. 检查Python安装
+1. 检查 Python 安装
 2. 创建虚拟环境（如果不存在）
 3. 安装所有依赖包
 4. 启动分析程序
 
 ### 4. 分析股票
 
-按照程序提示输入A股股票代码（如 `600519` 代表贵州茅台），系统将自动：
+按照程序提示输入 A 股股票代码（如 `600519` 代表贵州茅台），系统将自动：
 1. 获取股票数据（包含行业均值分析）
-2. 进行AI分析
-3. 生成PDF报告
+2. 进行 AI 分析
+3. 生成 PDF 报告
 
 ## 项目结构
 
@@ -81,45 +90,44 @@ project_root/
 ├── config/
 │   ├── config_manager.py  # 配置管理核心模块
 │   ├── settings.yaml      # 完整系统配置
-│   └── .env               # API密钥存储（环境变量）
+│   └── .env               # API 密钥存储（环境变量）
 ├── tools/
 │   ├── __init__.py
-│   └── akshare_tools.py   # Akshare数据工具封装 + 雅虎财经备用接口
+│   └── akshare_tools.py   # Akshare 数据工具封装 + 雅虎财经备用接口
 ├── agent/
 │   ├── __init__.py
 │   └── analyst.py         # 智能体逻辑（集成配置管理）
 ├── utils/
 │   ├── __init__.py
-│   ├── pdf_generator.py   # PDF生成器
-│   └── pdf_generator_fallback.py  # PDF备用生成器
+│   ├── pdf_generator.py   # PDF 生成器（支持 reportlab/xhtml2pdf 等）
+│   └── pdf_generator_fallback.py  # PDF 备用生成器
 ├── main.py                # 主程序入口
-├── start_agent.bat        # Windows启动脚本
-├── start_agent.sh         # Linux/Mac启动脚本
-├── requirements.txt       # Python依赖
+├── start_agent.bat        # Windows 启动脚本
+├── start_agent.sh         # Linux/Mac 启动脚本
+├── requirements.txt       # Python 依赖
 ├── develop.md             # 开发文档
-├── INSTALL_WINDOWS.md     # Windows安装说明
-├── test_yfinance_fields.py  # 雅虎财经字段测试工具
+├── INSTALL_WINDOWS.md     # Windows 安装说明
 └── README.md              # 项目说明文档
 ```
 
 ## 核心组件说明
 
-### 1. Akshare工具 (tools/akshare_tools.py)
+### 1. Akshare 工具 (tools/akshare_tools.py)
 
-包含6个核心数据获取工具：
+包含 6 个核心数据获取工具：
 
-- `get_market_valuation()`: 获取实时市值、PE、PB信息 + 行业均值数据
+- `get_market_valuation()`: 获取实时市值、PE、PB 信息 + 行业均值数据
 - `get_company_info()`: 获取公司基本信息 + 上市日期 + 经营范围
 - `get_financial_indicators()`: 获取财务指标（ROE、毛利率等）
-- `get_price_history()`: 获取最近30天价格历史
+- `get_price_history()`: 获取最近 30 天价格历史
 - `yfinance_with_retry()`: 带重试机制的雅虎财经数据获取
 - `get_industry_averages()`: 获取行业均值数据（估值和成长性指标）
 
 #### 数据源策略：
-- **主数据源**: Akshare（中国A股数据最完整）
+- **主数据源**: Akshare（中国 A 股数据最完整）
 - **备用数据源**: 雅虎财经（用于补充缺失字段：上市日期、经营范围）
-- **智能回退**: Akshare失败时自动切换到雅虎财经
-- **重试机制**: 网络异常时最多重试5次
+- **智能回退**: Akshare 失败时自动切换到雅虎财经
+- **重试机制**: 网络异常时最多重试 5 次
 
 ### 2. 配置管理系统 (config/config_manager.py)
 
@@ -130,28 +138,38 @@ project_root/
 - **向后兼容**：保持对现有环境变量的支持
 
 核心配置项：
-- 模型API设置（OpenRouter/其他提供商）
-- 雅虎财经代理设置（支持HTTP/HTTPS代理）
+- 模型 API 设置（OpenRouter/其他提供商）
+- 雅虎财经代理设置（支持 HTTP/HTTPS 代理）
 - 重试参数（最大重试次数、延迟时间）
-- 超时设置（akshare接口超时）
+- 超时设置（akshare 接口超时）
 
 ### 3. 分析智能体 (agent/analyst.py)
 
-使用smolagents框架构建，包含：
-- OpenAI兼容的OpenRouter API集成
-- 中文优化的系统提示词
+使用 smolagents 框架构建，包含：
+- OpenAI 兼容的 OpenRouter API 集成
+- 中文优化的系统提示词（强制翻译英文内容）
 - 多步骤分析流程
 - 集成配置管理，动态加载模型设置
 
-### 4. PDF生成器 (utils/pdf_generator.py)
+### 4. PDF 生成器 (utils/pdf_generator.py)
 
-智能PDF报告生成系统，支持多引擎自动选择：
-- **智能引擎检测**: 自动检测xhtml2pdf(推荐)、WeasyPrint、pdfkit、fpdf2等PDF生成库
-- **优先级选择**: 按引擎质量和可用性自动选择最优方案，无需用户干预
-- **推荐方案**: 默认使用xhtml2pdf（纯Python，无需外部依赖，安装即用）
-- **优雅降级**: 所有引擎均不可用时自动生成HTML报告，支持浏览器打印为PDF
-- **中文支持**: 包含中文字体配置（Microsoft YaHei），确保中文显示正常
-- **备份文件**: 同时生成HTML和Markdown格式备份，确保数据不丢失
+智能 PDF 报告生成系统，支持多引擎自动选择：
+
+**引擎优先级**（从高到低）：
+1. **reportlab** ⭐ 推荐 - 纯 Python，支持中文自动换行，无需外部依赖
+2. **xhtml2pdf** - 纯 Python，兼容性好
+3. **WeasyPrint** - 高质量，但需要 GTK3 运行时
+4. **pdfkit** - 需要 wkhtmltopdf
+5. **fpdf2** - 简单 PDF 生成
+
+**核心特性**：
+- **智能引擎检测**: 自动检测可用的 PDF 生成库
+- **优先级选择**: 按引擎质量和可用性自动选择最优方案
+- **推荐方案**: 默认使用 reportlab（支持中文换行，安装即用）
+- **优雅降级**: 所有引擎均不可用时自动生成 HTML 报告
+- **中文支持**: 注册 7 种中文字体（SimHei/SimSun/SimFang/SimKai/SimYou/MicrosoftYaHei）
+- **自动换行**: 使用 `wordWrap='CJK'` 和 `WORDWRAP` 属性确保中文长文本换行
+- **备份文件**: 同时生成 HTML 和 Markdown 格式备份
 
 ## 配置说明
 
@@ -164,7 +182,7 @@ model:
   provider: "openrouter"            # 模型提供商
   base_url: "https://openrouter.ai/api/v1"
   model_name: "deepseek/deepseek-chat"  # 可替换为其他模型
-  api_key_env: "OPENROUTER_API_KEY"     # API密钥环境变量名
+  api_key_env: "OPENROUTER_API_KEY"     # API 密钥环境变量名
   parameters:
     max_tokens: 4000
     temperature: 0.1
@@ -186,7 +204,7 @@ akshare:
 
 ### 支持的模型
 
-支持OpenRouter上的任何模型，如：
+支持 OpenRouter 上的任何模型，如：
 - `deepseek/deepseek-chat`（默认）
 - `meta-llama/llama-3.3-70b-instruct`
 - `google/gemma-2-9b-it`
@@ -204,7 +222,7 @@ YFINANCE_PROXY=http://127.0.0.1:10808
 
 ### 1. 上市日期提取
 
-系统从雅虎财经接口的`firstTradeDateMilliseconds`字段提取上市日期，自动转换为Python datetime对象：
+系统从雅虎财经接口的 `firstTradeDateMilliseconds` 字段提取上市日期，自动转换为 Python datetime 对象：
 
 ```python
 # 实现逻辑
@@ -216,7 +234,7 @@ if 'firstTradeDateMilliseconds' in info:
 
 ### 2. 智能重试机制
 
-雅虎财经接口内置5次重试，智能区分网络异常和数据缺失：
+雅虎财经接口内置 5 次重试，智能区分网络异常和数据缺失：
 
 ```python
 def yfinance_with_retry(yf_symbol: str, max_retries: int = 5):
@@ -236,10 +254,10 @@ def yfinance_with_retry(yf_symbol: str, max_retries: int = 5):
 
 ### 3. 经营范围数据整合
 
-当akshare接口缺失经营范围时，自动从雅虎财经获取：
+当 akshare 接口缺失经营范围时，自动从雅虎财经获取：
 
 ```python
-# 尝试从yfinance获取经营范围
+# 尝试从 yfinance 获取经营范围
 try:
     ticker, yf_info = yfinance_with_retry(yf_symbol, max_retries=3)
     if ticker is not None:
@@ -248,7 +266,7 @@ try:
 
 ### 4. 行业均值分析
 
-使用akshare的专业接口进行行业对比：
+使用 akshare 的专业接口进行行业对比：
 
 ```python
 # 获取成长性比较数据
@@ -259,7 +277,44 @@ valuation_df = ak.stock_zh_valuation_comparison_em(symbol=akshare_symbol)
 avg_row = growth_df[growth_df['简称'] == '行业平均']
 ```
 
-### 5. 配置管理系统
+### 5. PDF 中文换行优化 (2026-04)
+
+使用 reportlab 引擎，确保中文长文本自动换行：
+
+```python
+# 注册中文字体
+font_paths = [
+    ("SimHei", "C:/Windows/Fonts/simhei.ttf"),
+    ("SimSun", "C:/Windows/Fonts/simsunb.ttf"),
+    ("SimFang", "C:/Windows/Fonts/simfang.ttf"),
+    # ... 更多字体
+]
+for name, path in font_paths:
+    pdfmetrics.registerFont(TTFont(name, path))
+
+# 设置中文换行样式
+normal_style = ParagraphStyle(
+    name='ChineseNormal',
+    fontName='SimHei',
+    wordWrap='CJK'  # 中文自动换行
+)
+```
+
+### 6. AI 翻译强化 (2026-04)
+
+优化提示词，明确要求 AI 翻译英文内容：
+
+```python
+task = f"""
+**翻译要求（非常重要）：**
+- 所有英文字段名必须翻译为中文
+- 所有英文描述内容必须翻译为中文（特别是"经营范围"字段，必须完整翻译）
+- 所有英文专业术语必须翻译为中文
+- 最终答案必须是 Markdown 格式的分析报告
+"""
+```
+
+### 7. 配置管理系统
 
 ```python
 from config.config_manager import get_config_manager
@@ -277,16 +332,17 @@ config.apply_yfinance_settings()
 项目依赖在 `requirements.txt` 中：
 
 ```txt
-smolagents>=0.6.0      # AI代理框架
+smolagents>=0.6.0      # AI 代理框架
 akshare>=1.12.0         # 金融数据
 yfinance>=0.2.0         # 雅虎财经数据（备用数据源）
-markdown2>=2.4.0        # Markdown转换
-weasyprint>=60.0        # PDF生成
-pyyaml>=6.0            # YAML配置
+markdown2>=2.4.0        # Markdown 转换
+reportlab>=4.0.0        # PDF 生成（推荐）
+xhtml2pdf>=0.2.0        # PDF 生成（备选）
+pyyaml>=6.0            # YAML 配置
 python-dotenv>=1.0.0   # 环境变量
 pandas>=2.0.0          # 数据处理
-requests>=2.31.0       # HTTP请求
-openai>=1.0.0          # OpenAI兼容客户端
+requests>=2.31.0       # HTTP 请求
+openai>=1.0.0          # OpenAI 兼容客户端
 ```
 
 ## 使用示例
@@ -304,8 +360,8 @@ openai>=1.0.0          # OpenAI兼容客户端
 
 4. 程序将：
    - 获取股票数据（包含行业均值对比）
-   - 进行AI分析
-   - 生成PDF报告
+   - 进行 AI 分析
+   - 生成 PDF 报告（使用 reportlab 引擎，支持中文换行）
 
 ### 直接运行
 
@@ -320,39 +376,29 @@ python main.py
 2. 调整模型设置、代理配置等
 3. 重新运行程序，配置自动生效
 
-### 测试新功能
-
-```python
-# 测试雅虎财经字段
-python test_yfinance_fields.py
-
-# 查看完整配置
-python -c "from config.config_manager import get_config_manager; config = get_config_manager(); config.print_config_summary()"
-```
-
 ## 故障排除
 
-### 1. Python/pip问题
+### 1. Python/pip 问题
 
-如果遇到Python或pip问题：
-1. 确保Python 3.10+已安装并添加到PATH
+如果遇到 Python 或 pip 问题：
+1. 确保 Python 3.10+ 已安装并添加到 PATH
 2. 手动安装依赖：
    ```cmd
    pip install -r requirements.txt
    ```
 
-### 2. API密钥错误
+### 2. API 密钥错误
 
-如果遇到API密钥错误：
-1. 检查 `config/.env` 文件中的API密钥
-2. 确保OpenRouter账户有可用额度
-3. 运行程序时会提示输入API密钥
+如果遇到 API 密钥错误：
+1. 检查 `config/.env` 文件中的 API 密钥
+2. 确保 OpenRouter 账户有可用额度
+3. 运行程序时会提示输入 API 密钥
 
 ### 3. 网络连接问题
 
 如果数据获取失败：
 1. 检查网络连接
-2. Akshare可能需要稳定的网络连接
+2. Akshare 可能需要稳定的网络连接
 3. 启用代理设置（如果需要）：
    ```yaml
    yfinance:
@@ -366,22 +412,30 @@ python -c "from config.config_manager import get_config_manager; config = get_co
 如果雅虎财经无法获取数据：
 1. 检查代理设置是否正确
 2. 确保雅虎财经支持该股票代码
-3. 系统会自动回退到akshare数据
+3. 系统会自动回退到 akshare 数据
 
-### 5. PDF生成问题
+### 5. PDF 中文显示问题
 
-如果PDF生成失败：
-1. 确保已安装weasyprint依赖
-2. Windows用户可能需要安装GTK3运行时
-3. 报告会保存为Markdown格式作为备选
+如果 PDF 中文显示异常：
+1. 确保 reportlab 已安装：`pip install reportlab`
+2. 检查中文字体是否存在于 `C:/Windows/Fonts/`
+3. 程序会自动检测并使用可用的中文字体
+4. 生成的 PDF 会使用 reportlab 引擎（支持中文换行）
+
+### 6. AI 输出格式警告
+
+如果出现代码解析错误：
+1. 这是 smolagents 框架的正常行为
+2. 报告内容已完整生成
+3. PDF 生成功能不受影响
 
 ## 报告示例
 
-生成的PDF报告包含以下部分：
+生成的 PDF 报告包含以下部分：
 
-1. **公司概况** - 基本信息、行业、上市日期、经营范围
+1. **公司概况** - 基本信息、行业、上市日期、经营范围（已翻译为中文）
 2. **财务分析** - 盈利能力、成长性分析、行业对比
-3. **估值分析** - PE/PB分析、行业均值比较、相对估值
+3. **估值分析** - PE/PB 分析、行业均值比较、相对估值
 4. **技术分析** - 价格走势、成交量分析
 5. **行业对比** - 成长性指标行业排名、估值指标行业位置
 6. **风险提示** - 财务风险、市场风险、行业风险
@@ -389,12 +443,13 @@ python -c "from config.config_manager import get_config_manager; config = get_co
 
 ## 注意事项
 
-1. **数据准确性**: 数据来自Akshare和雅虎财经，仅供参考
+1. **数据准确性**: 数据来自 Akshare 和雅虎财经，仅供参考
 2. **投资建议**: 报告内容不构成投资建议
-3. **API限制**: OpenRouter API有调用频率限制
-4. **网络依赖**: 需要互联网连接获取数据和API调用
+3. **API 限制**: OpenRouter API 有调用频率限制
+4. **网络依赖**: 需要互联网连接获取数据和 API 调用
 5. **代理设置**: 如需访问雅虎财经，可能需要配置代理
 6. **配置管理**: 配置文件修改后立即生效，无需重启
+7. **PDF 引擎**: 默认使用 reportlab，支持中文自动换行
 
 ## 许可证
 
@@ -402,15 +457,23 @@ python -c "from config.config_manager import get_config_manager; config = get_co
 
 ## 支持与反馈
 
-如有问题或建议，请检查代码注释或创建issue。
+如有问题或建议，请检查代码注释或创建 issue。
 
 ## 版本历史
 
-### v1.2.0 (当前版本)
+### v1.3.0 (2026-04, 当前版本)
+- ✨ 新增 reportlab PDF 引擎（优先级最高），支持中文自动换行
+- ✨ 注册 7 种中文字体（SimHei/SimSun/SimFang/SimKai/SimYou/MicrosoftYaHei）
+- ✨ 优化 AI 提示词，强制翻译经营范围等英文内容
+- 🐛 修复 PDF 中文长文本不换行的问题
+- 🐛 修复 AI 输出格式解析错误
+- 🔧 调整 PDF 引擎优先级：reportlab > xhtml2pdf > WeasyPrint > pdfkit > fpdf2
+
+### v1.2.0
 - 新增配置管理系统
 - 集成雅虎财经接口重试机制
 - 添加行业均值分析功能
-- 分离所有配置到YAML文件
+- 分离所有配置到 YAML 文件
 
 ### v1.1.0
 - 添加雅虎财经备用数据源
@@ -420,11 +483,12 @@ python -c "from config.config_manager import get_config_manager; config = get_co
 
 ### v1.0.0
 - 初始版本发布
-- 基础Akshare数据获取
-- OpenRouter AI分析
-- PDF报告生成
+- 基础 Akshare 数据获取
+- OpenRouter AI 分析
+- PDF 报告生成
 
 ---
 
-**技术栈**: Python, Akshare, yfinance, OpenRouter API, smolagents, WeasyPrint  
-**适用场景**: A股金融分析、投资研究、数据可视化、自动化报告生成
+**技术栈**: Python, Akshare, yfinance, OpenRouter API, smolagents, reportlab, xhtml2pdf
+**适用场景**: A 股金融分析、投资研究、数据可视化、自动化报告生成
+**最新更新**: 2026 年 4 月 - PDF 中文支持完美优化
